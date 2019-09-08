@@ -6,13 +6,13 @@ We will be creating a RESTful (REST like) HTTP service using Web API feature of 
 
 The purpose of this code is to develop the Restaurent API, using Microsoft Web API with (C#),which authenticates and authorizes some requests, exposes OAuth2 endpoints, and returns data about meals and reviews for consumption by the caller. The caller in this case will be Postman, a useful utility for querying API’s.
 
-**Note:** Anytime you are stuck you can directly download the code from [here](https://github.com/thenikhilk/jwt-auth-webapi "GitHub repo link"){:target="_blank"} on GitHub or ask in the comments below.
+**Note:** Anytime you are stuck you can directly download the code from [here](https://github.com/thenikhilk/jwt-auth-webapi "GitHub repo link") on GitHub or ask in the comments below.
 
 ## Pre-requisite
 
-1. Basic knowledge [Web API with C#](https://www.asp.net/web-ap "Web API with C#"){:target="_blank"}
-2. [Visual Studio](https://visualstudio.microsoft.com/downloads/ "Visual Studio"){:target="_blank"}
-3. [Postman](https://www.getpostman.com/ "Postman"){:target="_blank"}
+1. Basic knowledge [Web API with C#](https://www.asp.net/web-ap "Web API with C#")
+2. [Visual Studio](https://visualstudio.microsoft.com/downloads/ "Visual Studio")
+3. [Postman](https://www.getpostman.com/ "Postman")
 
 ## Project Template
 
@@ -31,7 +31,7 @@ Run the collowing commands in the package manager console
 
 ![Open NuGet Package Manager](/assets/images/open-nuget-package-manager.jpg "Open NuGet Package Manager")
 
-{% highlight powershell %}
+```powershell
 install-package EntityFramework
 install-package Microsoft.AspNet.Cors
 install-package Microsoft.AspNet.Identity.Core
@@ -44,17 +44,17 @@ install-package Microsoft.Owin.Security.Jwt
 install-package Microsoft.Owin.Host.SystemWeb
 install-package System.IdentityModel.Tokens.Jwt
 install-package Thinktecture.IdentityModel.Core
-{% endhighlight %}
+```
 
 These are the minimum number of packages required to provide data persistence, enable CORS (Cross-Origin Resource Sharing), and enable generating and autAhenticating/authorizing with JWT.
 
 ## Entity Framework Setup
 
-We will be using Entity Framework for data persistence. Entity Framework will take care of generating a database, adding tables, stored procedures and so on. As an added benefit, Entity Framework will also upgrade the schema automatically as we make changes. 
+We will be using Entity Framework for data persistence. Entity Framework will take care of generating a database, adding tables, stored procedures and so on. As an added benefit, Entity Framework will also upgrade the schema automatically as we make changes.
 
 Create a new **IdentityDbContext** called **MealsContext**, which will give us Users, Roles and Claims in our database. Add this under a folder called Core, for organization. We will add our entities to this later.
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Core
 {
     using Microsoft.AspNet.Identity.EntityFramework;
@@ -63,13 +63,13 @@ namespace Meals.Service.Core
     {
     }
 }
-{% endhighlight %}
+```
 
 Claims are used to describe useful information that the user has associated with them. We will use claims to tell the client which roles the user has. The benefit of roles is that we can prevent access to certain methods/controllers to a specific group of users, and permit access to others.
 
 Add a **DbMigrationsConfiguration** class and allow automatic migrations, but prevent automatic data loss
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Core
 {
     using System.Data.Entity.Migrations;
@@ -83,11 +83,11 @@ namespace Meals.Service.Core
         }
     }
 }
-{% endhighlight %}
+```
 
 Now tell Entity Framework how to update the database schema using an initializer, as follows;
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Core
 {
     using System.Data.Entity;
@@ -96,7 +96,7 @@ namespace Meals.Service.Core
     {
     }
 }
-{% endhighlight %}
+```
 
 This tells Entity Framework to go ahead and upgrade the database to the latest version automatically for us.
 
@@ -104,7 +104,7 @@ Finally, tell your application about the initializer by updating the Global.asax
 
 Also we will configure our application to return camel-case JSON (thisIsCamelCase), instead of the default pascal-case (ThisIsPascalCase).
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service
 {
     using Newtonsoft.Json;
@@ -126,7 +126,7 @@ namespace Meals.Service
         }
     }
 }
-{% endhighlight %}
+```
 
 ## Data Provider
 
@@ -134,7 +134,7 @@ By default, Entity Framework will configure itself to use LocalDB. If this is no
 
 Open the **Web.config** file and delete the following code
 
-{% highlight xml %}
+```xml
 <entityFramework>
     <defaultConnectionFactory type="System.Data.Entity.Infrastructure.LocalDbConnectionFactory, EntityFramework">
         <parameters>
@@ -145,15 +145,15 @@ Open the **Web.config** file and delete the following code
         <provider invariantName="System.Data.SqlClient" type="System.Data.Entity.SqlServer.SqlProviderServices, EntityFramework.SqlServer" />
     </providers>
 </entityFramework>
-{% endhighlight %}
+```
 
 And add the connection string
 
-{% highlight xml %}
+```xml
 <connectionStrings>
     <add name="BooksContext" providerName="System.Data.SqlClient" connectionString="Server=.;Database=Books;Trusted_Connection=True;" />
 </connectionStrings>
-{% endhighlight %}
+```
 
 Now we’re using SQL Server directly rather than LocalDB.
 
@@ -163,15 +163,15 @@ Now we’re using SQL Server directly rather than LocalDB.
 
 To enable CORS, open **WebApiConfig.cs** and add the following code to the beginning of the **Register** method
 
-{% highlight csharp %}
+```csharp
 var cors = new EnableCorsAttribute("*", "*", "*");
 config.EnableCors(cors);
 config.MessageHandlers.Add(new PreflightRequestsHandler());
-{% endhighlight %}
+```
 
 Now create a new class in App_Start folder
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service
 {
     using System.Net;
@@ -197,7 +197,7 @@ namespace Meals.Service
         }
     }
 }
-{% endhighlight %}
+```
 
 In the CORS workflow, before sending a DELETE, PUT or POST request, the client sends an OPTIONS request to check that the domain from which the request originates is the same as the server. If the request domain and server domain are not the same, then the server must include various access headers that describe which domains have access. To enable access to all domains, we just respond with an origin header (Access-Control-Allow-Origin) with an asterisk to enable access for all.
 
@@ -209,7 +209,7 @@ The API will expose meals, and meals will have reviews.
 
 Under the Models folder add a new class called **Meal**. Add the following code
 
-{% highlight csharp %}
+```csharp
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -229,11 +229,11 @@ namespace Meals.Service.Models
         public virtual List<Review> Reviews { get; set; }
     }
 }
-{% endhighlight %}
+```
 
 And add **Review**
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Models
 {
     public class Review
@@ -244,11 +244,11 @@ namespace Meals.Service.Models
         public int MealId { get; set; }
     }
 }
-{% endhighlight %}
+```
 
 Add these entities to the **IdentityDbContext** in MealsContext.cs
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Core
 {
     using Microsoft.AspNet.Identity.EntityFramework;
@@ -261,7 +261,7 @@ namespace Meals.Service.Core
         public DbSet<Review> Reviews { get; set; }
     }
 }
-{% endhighlight %}
+```
 
 ## Abstractions
 
@@ -269,7 +269,7 @@ We need to abstract a couple of classes that we need to make use of, in order to
 
 Under the **Core** folder, add the following classes
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Core
 {
     using Microsoft.AspNet.Identity;
@@ -282,13 +282,13 @@ namespace Meals.Service.Core
         }
     }
 }
-{% endhighlight %}
+```
 
 We will make heavy use of the **UserManager&lt;T&gt;** in our project, and we don’t want to have to initialise it with a **UserStore&lt;T&gt;** every time we want to make use of it. Whilst adding this is not strictly necessary, it does go a long way to helping keep the code clean.
 
 Now add another class for the UserStore
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Core
 {
     using Microsoft.AspNet.Identity.EntityFramework;
@@ -300,7 +300,7 @@ namespace Meals.Service.Core
         }
     }
 }
-{% endhighlight %}
+```
 
 This code is really important. If we fail to tell the UserStore which DbContext to use, it falls back to some default value.
 
@@ -308,13 +308,13 @@ This code is really important. If we fail to tell the UserStore which DbContext 
 
 We need to expose some data to our client (when we write it). let’s take advantage of Entity Frameworks **Seed** method. The **Seed** method will pre-populate some books and reviews automatically for us.
 
-Kindly refer to [Configuration.cs](https://github.com/thenikhilk/jwt-auth-webapi/blob/master/Meals/Meals.Service/Core/Configuration.cs "Configuration.cs"){:target="_blank"} for the code.
+Kindly refer to [Configuration.cs](https://github.com/thenikhilk/jwt-auth-webapi/blob/master/Meals/Meals.Service/Core/Configuration.cs "Configuration.cs") for the code.
 
 ### Meals Endpoint
 
 Create a new controller called Meals with the following code
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Controllers
 {
     using Core;
@@ -334,7 +334,7 @@ namespace Meals.Service.Controllers
         }
     }
 }
-{% endhighlight %}
+```
 
 ### Reviews Endpoint
 
@@ -342,7 +342,7 @@ We’re also going to enable authorized users to post reviews and delete reviews
 
 Create a new Web API controller called **ReviewsController** and add the following code
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Controllers
 {
     using Core;
@@ -396,14 +396,14 @@ namespace Meals.Service.Controllers
         }
     }
 }
-{% endhighlight %}
+```
 
 The [FromBody] attribute tells Web API to look for the data for the method argument in the body of the HTTP message that we received from the client, and not in the URL. The second parameter is a view model that wraps around the **Review** entity itself. Add a new folder to your project called **ViewModels**, add a new class called **ReviewViewModel** and add the following code
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.ViewModels
 {
-    using Models; 
+    using Models;
 
     public class ReviewViewModel
     {
@@ -438,7 +438,7 @@ namespace Meals.Service.ViewModels
         }
     }
 }
-{% endhighlight %}
+```
 
 **Note**: In order to keep our API RESTful, we return the newly created entity (or its view model representation) back to the client for consumption, removing the need to re-fetch the entire data set.
 
@@ -447,7 +447,7 @@ namespace Meals.Service.ViewModels
  We will open up an OAuth endpoint to client credentials and return a token which describes the users claims. For each of the users roles we will add a claim (which will be used to control which views the user has access to on the client-side).
  We use OWIN to add our OAuth configuration into the pipeline. Add a new class to the project called **Startup.cs** and add the following code
 
-{% highlight csharp %}
+```csharp
 using Microsoft.Owin;
 using Owin;
 
@@ -463,13 +463,13 @@ namespace Meals.Service
         }
     }
 }
-{% endhighlight %}
+```
 
 Notice that Startup is a partial class. I've done that because I want to keep this class as simple as possible, because as the application becomes more complicated and we add more and more middle-ware, this class will grow exponentially. You could use a static helper class here, but the preferred method from the MSDN documentation seems to be leaning towards using partial classes specifically.
 
 Under the **App_Start** folder add a new class called **Startup.OAuth.cs** and add the following code
 
-{% highlight csharp %}
+```csharp
 using Meals.Service.Core;
 using Meals.Service.Identity;
 using Microsoft.Owin;
@@ -510,16 +510,16 @@ namespace Meals.Service
         }
     }
 }
-{% endhighlight %}
+```
 
 ### OAuth secrets
 
 Notice the code in the above file
 
-{% highlight csharp %}
+```csharp
 var issuer = ConfigurationManager.AppSettings["issuer"];
 var secret = TextEncodings.Base64Url.Decode(ConfigurationManager.AppSettings["secret"]);
-{% endhighlight %}
+```
 
 * Issuer - a unique identifier for the entity that issued the token (not to be confused with Entity Framework's entities)
 * Secret - a secret key used to secure the token and prevent tampering
@@ -528,19 +528,19 @@ Split these values out into their own configuration file called keys.config and 
 
 To do this, open Web.config and change the &lt;appSettings&gt; section as follows
 
-{% highlight xml %}
+```xml
 <appSettings file="keys.config">
 </appSettings>
-{% endhighlight %}
+```
 
 Now add a new file to your project called keys.config and add the following code
 
-{% highlight xml %}
+```xml
 <appSettings>
   <add key="issuer" value="http://localhost:56228/"/>
   <add key="secret" value="IxrAjDoa2FqElO7IhrSrUJELhUckePEPVpaePlS_Xaw"/>
 </appSettings>
-{% endhighlight %}
+```
 
 We made use of OWIN to manage instances of objects for us, on a per request basis. The pattern is comparable to IoC, in that you tell the "container" how to create an instance of a specific type of object, then request the instance using a Get&lt;T&gt; method.
 
@@ -554,7 +554,7 @@ The first time we request an instance of BooksContext for example, the lambda ex
 
 We used the following code to enable bearer authentication
 
-{% highlight csharp %}
+```csharp
 app.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions
             {
                 AuthenticationMode = AuthenticationMode.Active,
@@ -563,7 +563,7 @@ app.UseJwtBearerAuthentication(new JwtBearerAuthenticationOptions
                     new SymmetricKeyIssuerSecurityKeyProvider(issuer, secret)
                 }
             });
-{% endhighlight %}
+```
 
 The key takeaway of this code;
 
@@ -575,7 +575,7 @@ This code adds JWT bearer authentication to the OWIN pipeline.
 
 We need to expose an OAuth endpoint so that the client can request a token (by passing a user name and password).
 
-{% highlight csharp %}
+```csharp
 app.UseOAuthAuthorizationServer(new OAuthAuthorizationServerOptions
             {
                 AllowInsecureHttp = true,
@@ -584,7 +584,7 @@ app.UseOAuthAuthorizationServer(new OAuthAuthorizationServerOptions
                 Provider = new CustomOAuthProvider(),
                 AccessTokenFormat = new CustomJwtFormat(issuer)
             });
-{% endhighlight %}
+```
 
 Some important notes with this code;
 
@@ -598,7 +598,7 @@ Some important notes with this code;
 
 Create a new class under the **Identity** folder called **CustomJwtFormat.cs**.
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service.Identity
 {
     using Microsoft.Owin.Security;
@@ -640,13 +640,13 @@ namespace Meals.Service.Identity
         }
     }
 }
-{% endhighlight %}
+```
 
 ## Custom OAuth Provider
 
 Now we want to authenticate the user, create CustomOAuthProvider in Identity folder
 
-{% highlight csharp %}
+```csharp
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -704,13 +704,13 @@ namespace Meals.Service.Identity
         }
     }
 }
-{% endhighlight %}
+```
 
 As we're not checking the audience, when ValidateClientAuthentication is called we can just validate the request. When the request has a grant_type of password, which all our requests to the OAuth endpoint will have, the above GrantResourceOwnerCredentials method is executed. This method authenticates the user and creates the claims to be added to the JWT.
 
 ## Testing
 
-Now it's time to build the code and test it. If your code doesn't build, please check with the GitHub version [here](https://github.com/thenikhilk/jwt-auth-webapi "GitHub repo link"){:target="_blank"}
+Now it's time to build the code and test it. If your code doesn't build, please check with the GitHub version [here](https://github.com/thenikhilk/jwt-auth-webapi "GitHub repo link")
 
 Open Postman and hit your Meals endpoint
 
@@ -722,7 +722,7 @@ You should be able to get data of meals with it's reviews this means are service
 
 Add a new file to the App_Start folder, called FilterConfig.cs and add the following code
 
-{% highlight csharp %}
+```csharp
 namespace Meals.Service
 {
     using System.Web.Http;
@@ -735,26 +735,27 @@ namespace Meals.Service
         }
     }
 }
-{% endhighlight %}
+```
 
 To restrict access to all endpoints (except the OAuth endpoint) to requests that have been authenticated add this code from Global.asax.cs
 
-{% highlight csharp %}
+```csharp
 GlobalConfiguration.Configure(FilterConfig.Configure);
-{% endhighlight %}
+```
 
 But if you wish to restrict access to selected endpoints methods then you can add the following code before each method
 
-{% highlight csharp %}
+```csharp
 [Authorize(Roles = "Administrator")]
-{% endhighlight %}
+```
 
 Multiple roles can be added seperated by a comma (',').
 
 And to restrict for all roles, just add
-{% highlight csharp %}
+
+```csharp
 [Authorize]
-{% endhighlight %}
+```
 
 ### Generating Token
 
@@ -778,10 +779,10 @@ Make sure you set the message type as **x-www-form-urlencoded**
 
 Now in our code we have restriced the delete review method in **ReviewsController.cs** for users with **Administrator** role.
 
-To test this, generate the token as mentioned above and pass it in the **Authorization** header as a **Bearer** oken while hitting the endpoint http://localhost:62996 /api/reviews/2 in a **DELETE** method
+To test this, generate the token as mentioned above and pass it in the **Authorization** header as a **Bearer** oken while hitting the endpoint [http://localhost:62996/api/reviews/2](http://localhost:62996/api/reviews/2) in a **DELETE** method
 
 e.g.
 
-{% highlight text %}
+```text
 Authorization Bearer eyJ0eXAiOiJ...RWZQ
-{% endhighlight %}
+```
