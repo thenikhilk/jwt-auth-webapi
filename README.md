@@ -1,5 +1,7 @@
 # RESTful API with authentication using Web API and JWT
 
+[![Build status](https://dev.azure.com/TheNikhilK/TheNikhilK/_apis/build/status/JWT%20WebAPI%20Template)](https://dev.azure.com/TheNikhilK/TheNikhilK/_build/latest?definitionId=1)
+
 ## Introduction
 
 We will be creating a RESTful (REST like) HTTP service using Web API feature of the ASP.NET framework.
