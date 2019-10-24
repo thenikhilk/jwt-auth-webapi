@@ -2,6 +2,8 @@
 
 [![Build status](https://dev.azure.com/TheNikhilK/TheNikhilK/_apis/build/status/JWT%20WebAPI%20Template)](https://dev.azure.com/TheNikhilK/TheNikhilK/_build/latest?definitionId=1) [![Release status](https://vsrm.dev.azure.com/TheNikhilK/_apis/public/Release/badge/bb0a4e04-afca-4551-8acd-9a8a4ee21621/1/1)](https://vsrm.dev.azure.com/TheNikhilK/_apis/public/Release/badge/bb0a4e04-afca-4551-8acd-9a8a4ee21621/1/1)
 
+![Logo](assets/images/logo.png "Logo")
+
 ## Introduction
 
 We will be creating a RESTful (REST like) HTTP service using Web API feature of the ASP.NET framework.
