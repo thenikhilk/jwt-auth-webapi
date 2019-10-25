@@ -1,0 +1,33 @@
+trigger:
+- master
+
+pool:
+  name: Azure Pipelines
+  demands:
+  - msbuild
+  - visualstudio
+
+steps:
+- task: NuGetCommand@2
+  displayName: 'NuGet restore'
+
+- task: VSBuild@1
+  displayName: 'Build solution **\*.sln'
+  inputs:
+    configuration: release
+    clean: true
+
+- task: CopyFiles@2
+  displayName: 'Copy Files to: drop'
+  inputs:
+    SourceFolder: Meals/Meals.Service
+    Contents: '**\bin\**'
+    TargetFolder: drop
+    CleanTargetFolder: true
+    OverWrite: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: '$(Build.SourcesDirectory)\drop\bin'
+
